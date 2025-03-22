@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sea Creature Personality Quiz</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ocean-blue': '#0b3d91',
+                        'deep-blue': '#072a66',
+                        'light-blue': '#1e88e5',
+                        'teal-accent': '#00b3b3',
+                        'teal-dark': '#008080',
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'bubble': 'bubble 15s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        bubble: {
+                            '0%': { transform: 'translateY(100vh) scale(0)', opacity: '0.7' },
+                            '100%': { transform: 'translateY(-20vh) scale(1)', opacity: '0' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            animation: bubble 15s ease-in-out infinite;
+        }
+        
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .underwater-element {
+            position: absolute;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-ocean-blue to-deep-blue min-h-screen overflow-hidden text-white font-sans">
+    <!-- Background Image instead of video -->
+    <div class="fixed inset-0 z-0">
+        <img id="background-image" src="images/underwater-bg.jpeg" alt="Underwater Background" class="w-full h-full object-cover opacity-70">
+    </div>
+    
+    <!-- Decorative Bubbles -->
+    <div id="bubbles-container" class="fixed inset-0 z-0 overflow-hidden pointer-events-none"></div>
+    
+    <!-- Underwater City Elements - Will be populated by GSAP -->
+    <div id="underwater-city" class="fixed inset-0 z-1 overflow-hidden pointer-events-none"></div>
+    
+    <div class="container relative mx-auto px-4 py-8 flex justify-center items-center min-h-screen z-10">
+        <!-- Quiz Screen - Visible by default -->
+        <div id="quiz-screen" class="w-full max-w-2xl mx-auto bg-gradient-to-br from-deep-blue/70 to-light-blue/40 rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 glass-effect opacity-0">
+            <!-- Progress Bar -->
+            <div class="w-full bg-deep-blue/50 h-2">
+                <div id="progress-bar" class="bg-teal-accent h-2 w-0 transition-all duration-500"></div>
+            </div>
+            
+            <div class="p-8 md:p-10">
+                <div id="narration" class="text-2xl font-medium mb-8 text-center text-shadow"></div>
+                
+                <div id="character" class="flex flex-col md:flex-row items-center mb-8 opacity-0 transition-opacity duration-500">
+                    <div class="relative w-40 h-40 flex-shrink-0 mb-5 md:mb-0 md:mr-6">
+                        <img id="character-img" src="" alt="Sea character" class="w-full h-full object-contain z-10">
+                        <div class="absolute inset-0 bg-light-blue/20 rounded-full filter blur-xl z-0"></div>
+                    </div>
+                    <div id="character-text" class="bg-deep-blue/70 p-6 rounded-2xl relative w-full text-lg">
+                        <!-- Stylized speech bubble pointer for desktop -->
+                        <div class="hidden md:block absolute top-1/2 -left-4 w-4 h-4 bg-deep-blue/70 transform rotate-45 -translate-y-1/2"></div>
+                    </div>
+                </div>
+                
+                <div id="options" class="space-y-4 mt-8"></div>
+            </div>
+        </div>
+        
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden w-full max-w-2xl mx-auto bg-gradient-to-br from-deep-blue/70 to-light-blue/40 rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 glass-effect">
+            <div class="p-8 md:p-12 text-center">
+                <div id="result-title" class="text-3xl md:text-4xl font-bold mb-6 text-shadow"></div>
+                
+                <div class="relative w-64 h-64 mx-auto my-8">
+                    <div class="absolute inset-0 bg-light-blue/30 rounded-full filter blur-xl"></div>
+                    <img id="result-img" src="" alt="Your sea creature" class="relative z-10 w-full h-full object-contain">
+                </div>
+                
+                <div id="result-description" class="text-lg leading-relaxed mb-8 max-w-md mx-auto"></div>
+                
+                <button id="restart-button" class="bg-teal-accent hover:bg-teal-dark text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none">
+                    Take Quiz Again
+                </button>
+                
+                <div class="mt-8">
+                    <button id="share-button" class="bg-light-blue/50 hover:bg-light-blue/70 text-white font-bold py-2 px-5 rounded-full transition-all duration-300 mr-2">
+                        Share Results
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GSAP and Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+    <script>
+        // Create decorative bubbles
+        function createBubbles() {
+            const container = document.getElementById('bubbles-container');
+            const bubbleCount = 15;
+            
+            for (let i = 0; i < bubbleCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.classList.add('bubble');
+                
+                // Random size between 10px and 60px
+                const size = Math.random() * 50 + 10;
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                
+                // Random horizontal position
+                bubble.style.left = `${Math.random() * 100}%`;
+                
+                // Random start position (for staggered effect)
+                bubble.style.bottom = `${Math.random() * -100}%`;
+                
+                // Random animation duration between 15s and 30s
+                const duration = Math.random() * 15 + 15;
+                bubble.style.animationDuration = `${duration}s`;
+                
+                // Random delay
+                const delay = Math.random() * 15;
+                bubble.style.animationDelay = `${delay}s`;
+                
+                container.appendChild(bubble);
+            }
+        }
+        
+        // Create underwater city elements
+        function createUnderwaterCity() {
+            const cityElements = [
+                { src: 'images/underwater-building1.png', width: 180, height: 250, position: { bottom: '5%', left: '5%' } },
+                { src: 'images/underwater-building2.png', width: 150, height: 200, position: { bottom: '10%', left: '20%' } },
+                { src: 'images/underwater-building3.png', width: 200, height: 280, position: { bottom: '2%', right: '8%' } },
+                { src: 'images/submarine.png', width: 120, height: 70, position: { top: '20%', left: '7%' } },
+                { src: 'images/underwater-lamp.png', width: 60, height: 120, position: { bottom: '15%', left: '45%' } },
+                { src: 'images/underwater-lamp.png', width: 60, height: 120, position: { bottom: '15%', right: '40%' } },
+                { src: 'images/coral1.png', width: 100, height: 80, position: { bottom: '0', left: '30%' } },
+                { src: 'images/coral2.png', width: 120, height: 90, position: { bottom: '0', right: '25%' } },
+                { src: 'images/seaweed1.png', width: 70, height: 150, position: { bottom: '0', left: '55%' } },
+                { src: 'images/seaweed2.png', width: 60, height: 130, position: { bottom: '0', right: '60%' } }
+            ];
+            
+            const container = document.getElementById('underwater-city');
+            
+            cityElements.forEach((element, index) => {
+                const imgElement = document.createElement('img');
+                imgElement.src = element.src;
+                imgElement.alt = "Underwater city element";
+                imgElement.classList.add('underwater-element');
+                imgElement.id = `city-element-${index}`;
+                imgElement.style.width = `${element.width}px`;
+                imgElement.style.height = `${element.height}px`;
+                
+                // Set position
+                Object.keys(element.position).forEach(posKey => {
+                    imgElement.style[posKey] = element.position[posKey];
+                });
+                
+                container.appendChild(imgElement);
+            });
+        }
+        
+        // Initialize GSAP animations for the underwater city
+        function initializeUnderwaterAnimations() {
+            // Floating animation for buildings and elements
+            gsap.to('.underwater-element', {
+                y: 10,
+                duration: 2,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut",
+                stagger: {
+                    each: 0.2,
+                    from: "random"
+                }
+            });
+            
+            // Special animation for submarine
+            gsap.to('#city-element-3', {
+                x: 20,
+                rotation: 2,
+                duration: 4,
+                repeat: -1,
+                yoyo: true,
+                ease: "power1.inOut"
+            });
+            
+            // Glowing effect for lamps
+            gsap.to('#city-element-4, #city-element-5', {
+                filter: 'brightness(1.5)',
+                repeat: -1,
+                yoyo: true,
+                duration: 2,
+                ease: "sine.inOut"
+            });
+            
+            // Animate seaweed
+            gsap.to('#city-element-8, #city-element-9', {
+                rotation: 5,
+                transformOrigin: 'bottom',
+                duration: 3,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut",
+                stagger: 0.5
+            });
+            
+            // Animate background image for subtle water movement
+            gsap.to('#background-image', {
+                scale: 1.05,
+                rotation: 0.5,
+                duration: 20,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+        }
+        
+        // Modified script.js initialization for auto-start
+        function initializeQuizDirectly() {
+            // Skip the intro screen logic
+            
+            // Initialize the quiz directly
+            // Make sure quizScreen is displayed
+            const quizScreen = document.getElementById('quiz-screen');
+            quizScreen.style.display = 'block';
+            
+            // Show the first question with a nice fade-in
+            gsap.to(quizScreen, {
+                opacity: 1,
+                duration: 1.5,
+                ease: "power2.out"
+            });
+            
+            // Display first question
+            currentQuestion = 0;
+            displayQuestion(currentQuestion);
+            
+            // Update progress bar for first question
+            updateProgressBar(currentQuestion);
+        }
+        
+        // Update progress bar function
+        function updateProgressBar(questionIndex) {
+            const progressBar = document.getElementById('progress-bar');
+            const progress = (questionIndex / (quizData.questions.length - 1)) * 100;
+            gsap.to(progressBar, {
+                width: `${progress}%`,
+                duration: 0.5,
+                ease: "power1.out"
+            });
+        }
+        
+        // Initialize everything when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            createBubbles();
+            createUnderwaterCity();
+            initializeUnderwaterAnimations();
+            
+            // Directly start quiz without intro screen
+            setTimeout(initializeQuizDirectly, 500);
+        });
+    </script>
+    <script src="script.js"></script>
+    
+    <!-- Override initialization from script.js -->
+    <script>
+        // Prevent the original startup logic from script.js
+        // We'll need to modify our initialization to work with script.js
+        
+        // Override the startQuiz function if it exists
+        if (typeof startQuiz === 'function') {
+            startQuiz = function() {
+                // This is empty since we're handling initialization differently
+            };
+        }
+        
+        // Modify the script.js initialization without editing the original file
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if variables from script.js are defined
+            if (typeof quizData !== 'undefined' && typeof displayQuestion !== 'undefined') {
+                // Initialize quiz directly
+                setTimeout(() => {
+                    const quizScreen = document.getElementById('quiz-screen');
+                    quizScreen.style.display = 'block';
+                    
+                    // Fade in quiz container
+                    gsap.to(quizScreen, {
+                        opacity: 1,
+                        duration: 1.5,
+                        ease: "power2.out"
+                    });
+                    
+                    // Display first question
+                    displayQuestion(0);
+                    
+                    // Update progress bar (function added in our local script)
+                    if (typeof updateProgressBar === 'function') {
+                        updateProgressBar(0);
+                    }
+                }, 800);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -5,47 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sea Creature Personality Quiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'ocean-blue': '#0b3d91',
-                        'deep-blue': '#072a66',
-                        'light-blue': '#1e88e5',
-                        'teal-accent': '#00b3b3',
-                        'teal-dark': '#008080',
-                    },
-                    animation: {
-                        'float': 'float 3s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body {
             background: linear-gradient(to bottom, #0b3d91, #072a66);
             min-height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden; 
+            overflow-y: auto;   
             color: white;
-            font-family: sans-serif;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
 
         .glow-button {
             background: linear-gradient(45deg, #00b3b3, #1e88e5);
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 50px;
             font-weight: bold;
             transition: all 0.3s ease-in-out;
             box-shadow: 0px 0px 10px rgba(0, 179, 179, 0.8);
+            margin-top: 20px;
         }
 
         .glow-button:hover {
@@ -59,56 +43,105 @@
             border-radius: 15px;
             padding: 20px;
             max-width: 600px;
-            margin: auto;
-            text-align: center;
-            display: none; /* Hidden initially */
+            display: none;
         }
 
         .quiz-option {
-            background: rgba(0, 179, 179, 0.2);
-            padding: 10px;
-            border-radius: 10px;
-            margin: 10px 0;
-            cursor: pointer;
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0px 0px 5px rgba(0, 179, 179, 0.5);
-        }
+             background: linear-gradient(45deg, #00b3b3, #1e88e5);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 12px;
+                font-weight: bold;
+                transition: all 0.3s ease-in-out;
+                margin: 10px;
+                width: 100%;
+                max-width: 300px;
+                cursor: pointer;
+                border: none;
+                font-size: 16px;
+                text-align: center;
+                box-shadow: 0px 0px 10px rgba(0, 179, 179, 0.8);
+            }
 
         .quiz-option:hover {
-            background: rgba(0, 179, 179, 0.4);
-            box-shadow: 0px 0px 10px rgba(0, 179, 179, 0.8);
+            transform: scale(1.05);
+            box-shadow: 0px 0px 20px rgba(0, 179, 179, 1);
         }
 
-        #result-screen {
-            display: none;
+        .quiz-option:focus {
+            outline: none;
+        }
+
+
+        .bubble {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            opacity: 0.8;
+        }
+
+        #intro-container {
+            max-width: 600px;
+        }
+
+        #quiz-intro {
+            font-size: 18px;
+            font-weight: 400;
         }
     </style>
 </head>
 <body>
+    <!-- Floating Bubbles -->
+    <div id="bubbles-container"></div>
 
-    <!-- Background Image -->
-    <div class="fixed inset-0 z-0">
-        <img id="background-image" src="images/underwater-bg.jpeg" alt="Underwater Background" class="w-full h-full object-cover opacity-70">
-    </div>
+    <div class="container flex flex-col items-center text-center relative z-10">
+        <div id="intro-container">
+            <p id="quiz-intro">
+                You wake up, but something feels... weird. First of all, you’re floating. Second, you can <em>breathe</em> underwater. Third, a fish wearing sunglasses just swam past you like this is totally normal.<br><br>
+                Before you can freak out, you spot a <strong>massive underwater city</strong> in the distance. Neon coral, glowing sea creatures, and what looks like an octopus DJ spinning tracks at a shell-shaped club.
+            </p>
+            <button id="start-button" class="glow-button text-lg">what?</button>
+        </div>
 
-    <div class="container flex flex-col items-center justify-center min-h-screen relative z-10">
-        <!-- Start Button -->
-        <button id="start-button" class="glow-button text-lg">Start Quiz</button>
-
-        <!-- Quiz Screen -->
         <div id="quiz-screen" class="quiz-container mt-8">
             <h2 id="question-text" class="text-2xl mb-4"></h2>
             <div id="options-container"></div>
         </div>
 
-        <!-- Result Screen -->
-        <div id="result-screen" class="quiz-container mt-8">
-            <h2 id="result-title" class="text-3xl mb-4"></h2>
-            <p id="result-description" class="text-lg"></p>
-            <button id="restart-button" class="glow-button mt-4">Restart Quiz</button>
+        <!-- Add result screen and restart button -->
+        <div id="result-screen" class="quiz-container mt-8" style="display: none;">
+            The turtle chuckles. "Ahh, fascinating answers... Perhaps you have more to offer this city than you think."
+            With a flick of his fin, a shimmering wave of light pulses through the shop. You feel something shift—
+            ✨Your true undersea self awakening.✨
+            <img id="result-image" src="" alt="Result Image" class="mb-4">
+            <button id="restart-button" class="glow-button text-lg">Restart Quiz</button>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // GSAP Floating Bubbles Animation
+        function createBubbles() {
+            const bubbleContainer = document.getElementById("bubbles-container");
+            for (let i = 0; i < 20; i++) {
+                let bubble = document.createElement("div");
+                bubble.classList.add("bubble");
+                bubble.style.left = `${Math.random() * 100}vw`;
+                bubble.style.bottom = `-${Math.random() * 100}px`;
+                bubbleContainer.appendChild(bubble);
+                gsap.to(bubble, {
+                    y: "-110vh",
+                    duration: 5 + Math.random() * 5,
+                    repeat: -1,
+                    ease: "power1.inOut",
+                    delay: Math.random() * 2
+                });
+            }
+        }
+        createBubbles();
+
+    </script>
+    <script src="script.js"></script> <!-- Include script.js here -->
 </body>
 </html>

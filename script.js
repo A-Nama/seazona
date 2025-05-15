@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const questions = [
     {
-        question: "You wake up underwater. Somehow, you’re breathing. A group of sea creatures stares at you like you just fell out of the sky (which, technically, you did). One unimpressed-looking pufferfish floats over. ‘Well, this is awkward. Another one.’",
+        question: "A group of sea creatures are now staring at you like you just fell out of the sky (which, technically, you did). One unimpressed-looking pufferfish floats over. ‘Well, this is awkward. Another one.’",
         options: [
             { text: "Umm hi? This is kinda beautiful and weird—love it.", type: "jellyfish" },
             { text: "Not the warmest welcome, but go on. What’s the deal here?", type: "anglerfish" },

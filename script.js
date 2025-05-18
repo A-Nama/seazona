@@ -64,12 +64,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const resultImages = {
         "shark": "images/shark.png",
-        "sea-turtle": "images/sea-turtle.png",
+        "anglerfish": "images/anglerfish.png",
         "dolphin": "images/dolphin.png",
-        "octopus": "images/octopus.png",
+        "seabunny": "images/seabunny.png",
         "jellyfish": "images/jellyfish.png",
-        "orca": "images/orca.png",
-        "manta-ray": "images/manta-ray.png",
+        "blobfish": "images/blobfish.png",
+        "seaurchin": "images/seaurchin.png",
         "clownfish": "images/clownfish.png"
     };
 
